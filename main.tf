@@ -1,29 +1,15 @@
-terraform {
-  backend "s3" {
-    bucket         = "terraformstatee"
-    key            = "eks/terraform.tfstate"
-    region         = "eu-north-1"
-  }
+provider "kubernetes" {
+  host = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
 }
 
 provider "aws" {
-  region = "eu-north-1"
+  region = var.region
 }
 
-module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
-  cluster_name    = "my-eks-cluster"
-  cluster_version = "1.29"
-  subnet_ids      = ["subnet-0b0cc2d8b401eae1e"]  # MUST be a list of strings
-  vpc_id          = "vpc-05460da2bddc58546"
-  # manage_aws_auth = true                          # usually recommended for single-node setups
+data "aws_availability_zones" "available" {}
 
-  node_groups = {
-    default = {
-      desired_capacity = 1
-      max_capacity     = 2
-      min_capacity     = 1
-      instance_types   = ["t3.medium"]
-    }
-  }
+locals {
+  cluster_name = var.clusterName
 }
+
